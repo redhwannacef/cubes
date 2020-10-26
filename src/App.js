@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { transform } from "@babel/core";
 import pluginTransformJsx from "@babel/plugin-transform-react-jsx";
 import prettier from "prettier";
@@ -8,8 +8,14 @@ import "./Utilities.css";
 
 const layoutElements = [
   {
-    name: "container",
+    name: "wrapper",
     props: { className: "wrapper" },
+    type: "div",
+    children: [],
+  },
+  {
+    name: "flow",
+    props: { className: "flow" },
     type: "div",
     children: [],
   },
@@ -32,29 +38,85 @@ const transformJsx = (code) =>
 const formatProps = (props) => {
   return Object.entries(props)
     .map(([key, value]) => {
-      return `${key}={${JSON.stringify(value)}}`;
+      const val =
+        {}.toString.call(value) === "[object Function]"
+          ? value
+          : JSON.stringify(value);
+      return `${key}={${val}}`;
     })
     .join(" ");
 };
 
-const createElement = (type, props, children = []) => {
-  const formattedProps = props ? formatProps(props) : "";
+const createElement = (
+  type,
+  props,
+  children = [],
+  id,
+  raw,
+  selectedElement,
+  setSelectedElement
+) => {
+  const highlight =
+    id === selectedElement
+      ? { borderColor: "blue" }
+      : { borderColor: "lightgray" };
+  const additionalProps = {
+    ...props,
+    style: {
+      border: "1px solid lightgray",
+      minHeight: "1rem",
+      ...highlight,
+    },
+    onClick: (e) => {
+      setSelectedElement(Number(e.target.id));
+      e.stopPropagation();
+    },
+    id,
+  };
+
+  const formattedProps = props
+    ? formatProps(raw ? props : additionalProps)
+    : raw
+    ? ""
+    : formatProps(raw ? props : additionalProps);
+
   return `<${type} ${formattedProps}>${children
     .filter((obj) => Boolean(obj))
     .map((child) =>
       typeof child === "string"
         ? child
-        : createElement(child.type, child.props, child.children)
+        : createElement(
+            child.type,
+            child.props,
+            child.children,
+            child.id,
+            raw,
+            selectedElement,
+            setSelectedElement
+          )
     )
     .join("\n")}</${type}>`;
 };
 
-const DynamicComponent = ({ elements, raw }) => {
+const DynamicComponent = ({
+  elements,
+  raw = false,
+  selectedElement,
+  setSelectedElement,
+}) => {
   const innerCode =
     elements.length > 0
       ? elements
-          .map(({ type, props, children }) =>
-            createElement(type, props, children)
+          .map(({ id, type, props, children }) =>
+            createElement(
+              type,
+              props,
+              children,
+              id,
+              raw,
+              selectedElement,
+              setSelectedElement
+            )
           )
           .join("\n")
       : "";
@@ -65,20 +127,57 @@ const DynamicComponent = ({ elements, raw }) => {
       plugins: [babelParser],
     });
 
-  const code = `return ${transformJsx(`<div>${innerCode}</div>`).replace(
-    "\n",
-    ""
-  )}`;
+  const code = `return ${transformJsx(`<>${innerCode}</>`).replace("\n", "")}`;
 
-  const fn = new Function("React", code);
-  return fn(React);
+  const fn = new Function("React", "setSelectedElement", code);
+  return fn(React, setSelectedElement);
 };
 
 const App = () => {
+  const [id, setId] = useState(0);
   const [elements, setElements] = useState([]);
+  const [selectedElement, setSelectedElement] = useState(-1);
 
-  const addElement = (type, props, children) =>
-    setElements((prevState) => [...prevState, { type, props, children }]);
+  const getAndIncrement = () => {
+    const currentId = id;
+    setId((previousId) => previousId + 1);
+    return currentId;
+  };
+
+  function update(elementsCopy, selectedElement, el) {
+    for (let element of elementsCopy) {
+      if (typeof element === "string") continue;
+      if (element.id === selectedElement) {
+        element.children = [...element.children, el];
+        return;
+      } else {
+        update(element.children, selectedElement, el);
+      }
+    }
+  }
+
+  const addElement = (id, type, props, children, selectedElement) => {
+    if (selectedElement > -1) {
+      const el = { id, type, props, children };
+      let updatedElements = elements.map((element) => ({ ...element }));
+      update(updatedElements, selectedElement, el);
+      setElements(updatedElements);
+    } else {
+      setElements((prevState) => [...prevState, { id, type, props, children }]);
+    }
+  };
+
+  useEffect(() => {
+    const escFunction = (event) => {
+      if (event.keyCode === 27) {
+        setSelectedElement(-1);
+      }
+    };
+    document.addEventListener("keydown", escFunction, false);
+    return () => {
+      document.removeEventListener("keydown", escFunction, false);
+    };
+  }, []);
 
   return (
     <div
@@ -92,19 +191,35 @@ const App = () => {
         <h1>Components</h1>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <h4>Layout Elements</h4>
-          {layoutElements.map(({ name, type, props, children }) => (
+          {layoutElements.map(({ name, type, props, children }, index) => (
             <button
               key={name}
-              onClick={() => addElement(type, props, children)}
+              onClick={() =>
+                addElement(
+                  getAndIncrement(),
+                  type,
+                  props,
+                  children,
+                  selectedElement
+                )
+              }
             >
               {name}
             </button>
           ))}
           <h4>HTML Elements</h4>
-          {htmlElements.map(({ name, type, props, children }) => (
+          {htmlElements.map(({ name, type, props, children }, index) => (
             <button
               key={name}
-              onClick={() => addElement(type, props, children)}
+              onClick={() =>
+                addElement(
+                  getAndIncrement(),
+                  type,
+                  props,
+                  children,
+                  selectedElement
+                )
+              }
             >
               {name}
             </button>
@@ -113,7 +228,11 @@ const App = () => {
       </div>
       <div style={{ padding: "0 10px", flexGrow: 2 }}>
         <h1 align="center">App</h1>
-        <DynamicComponent elements={elements} />
+        <DynamicComponent
+          elements={elements}
+          selectedElement={selectedElement}
+          setSelectedElement={setSelectedElement}
+        />
       </div>
       <div style={{ padding: "0 10px" }}>
         <h1>Code</h1>

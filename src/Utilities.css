@@ -1,3 +1,7 @@
+.flow > * + * {
+  margin-top: 1rem;
+}
+
 .wrapper {
   max-width: 75rem;
   margin-left: auto;
