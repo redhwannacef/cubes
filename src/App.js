@@ -36,6 +36,7 @@ const transformJsx = (code) =>
   transform(code, { plugins: [pluginTransformJsx] }).code;
 
 const formatProps = (props) => {
+  console.log(props);
   return Object.entries(props)
     .map(([key, value]) => {
       const val =
@@ -49,24 +50,17 @@ const formatProps = (props) => {
 
 const createElement = (
   type,
-  props,
+  props = {},
   children = [],
   id,
   raw,
   selectedElement,
   setSelectedElement
 ) => {
-  const highlight =
-    id === selectedElement
-      ? { borderColor: "blue" }
-      : { borderColor: "lightgray" };
+  const highlight = id === selectedElement ? "selected" : "";
   const additionalProps = {
     ...props,
-    style: {
-      border: "1px solid lightgray",
-      minHeight: "1rem",
-      ...highlight,
-    },
+    className: `element ${props.className || ""} ${highlight}`,
     onClick: (e) => {
       setSelectedElement(Number(e.target.id));
       e.stopPropagation();
@@ -190,7 +184,7 @@ const App = () => {
       <div style={{ padding: "0 10px" }}>
         <h1>Components</h1>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <h4>Layout Elements</h4>
+          <h4>Utilities</h4>
           {layoutElements.map(({ name, type, props, children }, index) => (
             <button
               key={name}
