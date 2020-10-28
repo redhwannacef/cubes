@@ -9,6 +9,13 @@ const renderPages = (pages) =>
     </div>
   ));
 
+const pageExists = (pages, name) => {
+  for (const page of pages) {
+    if (page.name === name) return true;
+    return pageExists(page.children, name);
+  }
+};
+
 const SiteMapBuilder = () => {
   const [pages, setPages] = useState([]);
 
@@ -23,6 +30,7 @@ const SiteMapBuilder = () => {
   };
 
   const addPage = (name, parent) => {
+    if (pageExists(pages, name)) return;
     if (!parent) {
       setPages((prevState) => [...prevState, { name, children: [] }]);
     } else {
