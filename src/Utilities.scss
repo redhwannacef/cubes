@@ -8,3 +8,13 @@
   margin-right: auto;
   padding: 0 2rem;
 }
+
+.horizontally-spread {
+  display: flex;
+  & > * {
+    width: 100%;
+  }
+  & > * + * {
+    margin-left: 1rem;
+  }
+}
