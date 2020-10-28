@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { transform } from "@babel/core";
 import pluginTransformJsx from "@babel/plugin-transform-react-jsx";
 import prettier from "prettier";
 import babelParser from "prettier/parser-babel";
 
 import "./Utilities.scss";
+import { Link } from "react-router-dom";
 
 const layoutElements = [
   {
@@ -13,12 +14,7 @@ const layoutElements = [
     type: "div",
     children: [],
   },
-  {
-    name: "flow",
-    props: { className: "flow" },
-    type: "div",
-    children: [],
-  },
+  { name: "flow", props: { className: "flow" }, type: "div", children: [] },
   {
     name: "horizontally spread",
     props: { className: "horizontally-spread" },
@@ -180,64 +176,66 @@ const UiBuilder = () => {
   }, []);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-around",
-        padding: "0 50px",
-      }}
-    >
-      <div style={{ padding: "0 10px" }}>
-        <h1>Components</h1>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <h4>Utilities</h4>
-          {layoutElements.map(({ name, type, props, children }, index) => (
-            <button
-              key={name}
-              onClick={() =>
-                addElement(
-                  getAndIncrement(),
-                  type,
-                  props,
-                  children,
-                  selectedElement
-                )
-              }
-            >
-              {name}
-            </button>
-          ))}
-          <h4>HTML Elements</h4>
-          {htmlElements.map(({ name, type, props, children }, index) => (
-            <button
-              key={name}
-              onClick={() =>
-                addElement(
-                  getAndIncrement(),
-                  type,
-                  props,
-                  children,
-                  selectedElement
-                )
-              }
-            >
-              {name}
-            </button>
-          ))}
+    <div style={{ padding: "0 50px" }}>
+      <Link to="/site-map-builder">Site Map Builder</Link>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-around",
+        }}
+      >
+        <div style={{ padding: "0 10px" }}>
+          <h1>Components</h1>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <h4>Utilities</h4>
+            {layoutElements.map(({ name, type, props, children }, index) => (
+              <button
+                key={name}
+                onClick={() =>
+                  addElement(
+                    getAndIncrement(),
+                    type,
+                    props,
+                    children,
+                    selectedElement
+                  )
+                }
+              >
+                {name}
+              </button>
+            ))}
+            <h4>HTML Elements</h4>
+            {htmlElements.map(({ name, type, props, children }, index) => (
+              <button
+                key={name}
+                onClick={() =>
+                  addElement(
+                    getAndIncrement(),
+                    type,
+                    props,
+                    children,
+                    selectedElement
+                  )
+                }
+              >
+                {name}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-      <div style={{ padding: "0 10px", flexGrow: 2 }}>
-        <h1 align="center">App</h1>
-        <DynamicComponent
-          elements={elements}
-          selectedElement={selectedElement}
-          setSelectedElement={setSelectedElement}
-        />
-      </div>
-      <div style={{ padding: "0 10px" }}>
-        <h1>Code</h1>
-        <div style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
-          <DynamicComponent elements={elements} raw />
+        <div style={{ padding: "0 10px", flexGrow: 2 }}>
+          <h1 align="center">App</h1>
+          <DynamicComponent
+            elements={elements}
+            selectedElement={selectedElement}
+            setSelectedElement={setSelectedElement}
+          />
+        </div>
+        <div style={{ padding: "0 10px" }}>
+          <h1>Code</h1>
+          <div style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+            <DynamicComponent elements={elements} raw />
+          </div>
         </div>
       </div>
     </div>
