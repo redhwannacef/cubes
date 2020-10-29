@@ -6,9 +6,9 @@ import SiteMapBuilder from "./SiteMapBuider";
 const App = () => (
   <BrowserRouter>
     <Routes>
-      <Route path="/ui-builder" element={<UiBuilder />} />
+      <Route path="ui-builder" element={<UiBuilder />} />
       <Route path="site-map-builder" element={<SiteMapBuilder />} />
-      <Navigate to="/ui-builder" replace={true} />
+      <Navigate to="ui-builder" replace={true} />
     </Routes>
   </BrowserRouter>
 );

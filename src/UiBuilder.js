@@ -178,12 +178,7 @@ const UiBuilder = () => {
   return (
     <div style={{ padding: "0 50px" }}>
       <Link to="/site-map-builder">Site Map Builder</Link>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-around",
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "space-around" }}>
         <div style={{ padding: "0 10px" }}>
           <h1>Components</h1>
           <div style={{ display: "flex", flexDirection: "column" }}>
@@ -233,9 +228,9 @@ const UiBuilder = () => {
         </div>
         <div style={{ padding: "0 10px" }}>
           <h1>Code</h1>
-          <div style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+          <code>
             <DynamicComponent elements={elements} raw />
-          </div>
+          </code>
         </div>
       </div>
     </div>
