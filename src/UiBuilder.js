@@ -5,7 +5,6 @@ import prettier from "prettier";
 import babelParser from "prettier/parser-babel";
 
 import "./Utilities.scss";
-import { Link } from "react-router-dom";
 
 const layoutElements = [
   {
@@ -37,9 +36,8 @@ const htmlElements = [
 const transformJsx = (code) =>
   transform(code, { plugins: [pluginTransformJsx] }).code;
 
-const formatProps = (props) => {
-  console.log(props);
-  return Object.entries(props)
+const formatProps = (props) =>
+  Object.entries(props)
     .map(([key, value]) => {
       const val =
         {}.toString.call(value) === "[object Function]"
@@ -48,7 +46,6 @@ const formatProps = (props) => {
       return `${key}={${val}}`;
     })
     .join(" ");
-};
 
 const createElement = (
   type,
@@ -99,6 +96,7 @@ const DynamicComponent = ({
   raw = false,
   selectedElement,
   setSelectedElement,
+  componentName,
 }) => {
   const innerCode =
     elements.length > 0
@@ -118,10 +116,13 @@ const DynamicComponent = ({
       : "";
 
   if (raw)
-    return prettier.format(`const Code = () => (<>${innerCode}</>)`, {
-      parser: "babel",
-      plugins: [babelParser],
-    });
+    return prettier.format(
+      `const ${componentName} = () => (<>${innerCode}</>)`,
+      {
+        parser: "babel",
+        plugins: [babelParser],
+      }
+    );
 
   const code = `return ${transformJsx(`<>${innerCode}</>`).replace("\n", "")}`;
 
@@ -129,9 +130,8 @@ const DynamicComponent = ({
   return fn(React, setSelectedElement);
 };
 
-const UiBuilder = () => {
+const UiBuilder = ({ selectedPage, elements = [], setElements }) => {
   const [id, setId] = useState(0);
-  const [elements, setElements] = useState([]);
   const [selectedElement, setSelectedElement] = useState(-1);
 
   const getAndIncrement = () => {
@@ -159,7 +159,7 @@ const UiBuilder = () => {
       update(updatedElements, selectedElement, el);
       setElements(updatedElements);
     } else {
-      setElements((prevState) => [...prevState, { id, type, props, children }]);
+      setElements([...elements, { id, type, props, children }]);
     }
   };
 
@@ -177,7 +177,6 @@ const UiBuilder = () => {
 
   return (
     <div style={{ padding: "0 50px" }}>
-      <Link to="/site-map-builder">Site Map Builder</Link>
       <div style={{ display: "flex", justifyContent: "space-around" }}>
         <div style={{ padding: "0 10px" }}>
           <h1>Components</h1>
@@ -219,18 +218,23 @@ const UiBuilder = () => {
           </div>
         </div>
         <div style={{ padding: "0 10px", flexGrow: 2 }}>
-          <h1 align="center">App</h1>
+          <h1 align="center">{selectedPage.name}</h1>
           <DynamicComponent
             elements={elements}
             selectedElement={selectedElement}
             setSelectedElement={setSelectedElement}
+            componentName={selectedPage.name}
           />
         </div>
         <div style={{ padding: "0 10px" }}>
           <h1>Code</h1>
-          <code>
-            <DynamicComponent elements={elements} raw />
-          </code>
+          <pre>
+            <DynamicComponent
+              raw
+              elements={elements}
+              componentName={selectedPage.name}
+            />
+          </pre>
         </div>
       </div>
     </div>

@@ -1,21 +1,35 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import prettier from "prettier";
 import babelParser from "prettier/parser-babel";
 
-const renderPages = (pages) =>
-  pages.map((page) => (
-    <div key={page.name} style={{ flexGrow: 1 }}>
-      <p align="center">{page.name}</p>
-      <div className="horizontally-spread">{renderPages(page.children)}</div>
-    </div>
-  ));
+const Node = ({ pages, selectedPage, setSelectedPage }) => (
+  <>
+    {pages.map((page) => (
+      <div key={page.name} style={{ flexGrow: 1 }}>
+        <p
+          onClick={() => setSelectedPage(page)}
+          style={{ marginBottom: "2rem", textAlign: "center" }}
+        >
+          {page.name}
+        </p>
+        <div className="horizontally-spread">
+          <Node
+            pages={page.children}
+            selectedPage={selectedPage}
+            setSelectedPage={setSelectedPage}
+          />
+        </div>
+      </div>
+    ))}
+  </>
+);
 
 const pageExists = (pages, name) => {
   for (const page of pages) {
     if (page.name === name) return true;
-    return pageExists(page.children, name);
+    pageExists(page.children, name);
   }
+  return false;
 };
 
 const upperCamelToSnakeCase = (string) =>
@@ -30,20 +44,26 @@ const routes = (pages) =>
           )}</Route>`
         : `<Route path="${path}" element={<${name} />} />`
     )
-    .join();
+    .join("");
 
-const generateCode = (pages) => {
+const GeneratedCode = ({ pages }) => {
   const code = `const App = () => (<BrowserRouter><Routes>${routes(
     pages
   )}</Routes></BrowserRouter>)`;
 
-  return prettier.format(code, {
-    parser: "babel",
-    plugins: [babelParser],
-  });
+  return (
+    <>
+      <pre>
+        {prettier.format(code, {
+          parser: "babel",
+          plugins: [babelParser],
+        })}
+      </pre>
+    </>
+  );
 };
 
-const SiteMapBuilder = () => {
+const RouteBuilder = ({ selectedPage, setSelectedPage }) => {
   const [placeholder, setPlaceholder] = useState();
   const [pages, setPages] = useState([]);
 
@@ -76,7 +96,6 @@ const SiteMapBuilder = () => {
 
   return (
     <div style={{ padding: "0 50px" }}>
-      <Link to="/ui-builder">UI Builder</Link>
       <div style={{ display: "flex", justifyContent: "space-around" }}>
         <div style={{ padding: "0 10px" }}>
           <h1>New Page</h1>
@@ -92,6 +111,7 @@ const SiteMapBuilder = () => {
               onChange={(e) =>
                 setPlaceholder(upperCamelToSnakeCase(e.target.value))
               }
+              required
             />
             <label htmlFor="parent">Parent</label>
             <input id="parent" name="parent" />
@@ -101,20 +121,24 @@ const SiteMapBuilder = () => {
           </form>
         </div>
         <div style={{ padding: "0 10px", flexGrow: 2 }}>
-          <h1 align="center">Site Map</h1>
+          <h1 align="center">Routes</h1>
           <div
             style={{ flexGrow: 2, display: "flex", justifyContent: "center" }}
           >
-            {renderPages(pages)}
+            <Node
+              pages={pages}
+              selectedPage={selectedPage}
+              setSelectedPage={setSelectedPage}
+            />
           </div>
         </div>
         <div style={{ padding: "0 10px" }}>
           <h1>Code</h1>
-          <code>{generateCode(pages)}</code>
+          <GeneratedCode pages={pages} />
         </div>
       </div>
     </div>
   );
 };
 
-export default SiteMapBuilder;
+export default RouteBuilder;
