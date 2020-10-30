@@ -113,6 +113,25 @@ const UiBuilder = ({ selectedPage, elements = [], setElements }) => {
                 {name}
               </button>
             ))}
+            <h4>Routing</h4>
+            <form
+              autoComplete="off"
+              onSubmit={(e) => {
+                e.preventDefault();
+                addElement(
+                  getAndIncrement(),
+                  "Link",
+                  { to: e.target.elements.to.value },
+                  ["link"],
+                  selectedElement
+                );
+              }}
+              style={{ display: "flex", flexDirection: "column" }}
+            >
+              <label htmlFor="to">Link To</label>
+              <input id="to" name="to" required />
+              <button type="submit">Link</button>
+            </form>
           </div>
         </div>
         <div style={{ padding: "0 10px", flexGrow: 2 }}>

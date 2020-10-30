@@ -5,6 +5,7 @@ import DynamicComponent from "./DynamicComponent";
 import RoutesCode from "./RoutesCode";
 
 import "./Utilities.scss";
+import { BrowserRouter } from "react-router-dom";
 
 const pageExists = (pages, name) => {
   for (const page of pages) {
@@ -56,39 +57,45 @@ const App = () => {
   };
 
   return (
-    <div style={{ display: "flex" }}>
-      <div style={{ flexGrow: 2 }}>
-        <RouteBuilder
-          selectedPage={selectedPage}
-          setSelectedPage={setSelectedPage}
-          pages={pages}
-          addPage={addPage}
-        />
-        {selectedPage && (
-          <>
-            <hr style={{ margin: "3rem" }} />
-            <UiBuilder
-              selectedPage={selectedPage}
-              setElements={onSetElements}
-              elements={pageElements[selectedPage.name]}
-            />
-          </>
-        )}
+    <BrowserRouter>
+      <div style={{ display: "flex" }}>
+        <div style={{ flexGrow: 2 }}>
+          <RouteBuilder
+            selectedPage={selectedPage}
+            setSelectedPage={setSelectedPage}
+            pages={pages}
+            addPage={addPage}
+          />
+          {selectedPage && (
+            <>
+              <hr style={{ margin: "3rem" }} />
+              <UiBuilder
+                selectedPage={selectedPage}
+                setElements={onSetElements}
+                elements={pageElements[selectedPage.name]}
+              />
+            </>
+          )}
+        </div>
+        <div style={{ padding: "0 10px" }}>
+          <h1>Code</h1>
+          <pre>
+            <RoutesCode pages={pages} />
+            {"\n"}
+            {Object.entries(pageElements).map(([page, elements]) => (
+              <Fragment key={`code-${page}`}>
+                <DynamicComponent
+                  raw
+                  elements={elements}
+                  componentName={page}
+                />
+                {"\n"}
+              </Fragment>
+            ))}
+          </pre>
+        </div>
       </div>
-      <div style={{ padding: "0 10px" }}>
-        <h1>Code</h1>
-        <pre>
-          <RoutesCode pages={pages} />
-          {"\n"}
-          {Object.entries(pageElements).map(([page, elements]) => (
-            <Fragment key={`code-${page}`}>
-              <DynamicComponent raw elements={elements} componentName={page} />
-              {"\n"}
-            </Fragment>
-          ))}
-        </pre>
-      </div>
-    </div>
+    </BrowserRouter>
   );
 };
 

@@ -3,6 +3,7 @@ import babelParser from "prettier/parser-babel";
 import React from "react";
 import { transform } from "@babel/core";
 import pluginTransformJsx from "@babel/plugin-transform-react-jsx";
+import { Link } from "react-router-dom";
 
 const transformJsx = (code) =>
   transform(code, { plugins: [pluginTransformJsx] }).code;
@@ -28,14 +29,17 @@ const createElement = (
   setSelectedElement
 ) => {
   const highlight = id === selectedElement ? "selected" : "";
+  const linkProps = type === "Link" ? { to: "#" } : {};
   const additionalProps = {
     ...props,
     className: `element ${props.className || ""} ${highlight}`,
     onClick: (e) => {
       setSelectedElement(Number(e.target.id));
       e.stopPropagation();
+      return false;
     },
     id,
+    ...linkProps,
   };
 
   const formattedProps = props
@@ -97,8 +101,8 @@ const DynamicComponent = ({
 
   const code = `return ${transformJsx(`<>${innerCode}</>`).replace("\n", "")}`;
 
-  const fn = new Function("React", "setSelectedElement", code);
-  return fn(React, setSelectedElement);
+  const fn = new Function("React", "Link", "setSelectedElement", code);
+  return fn(React, Link, setSelectedElement);
 };
 
 export default DynamicComponent;
