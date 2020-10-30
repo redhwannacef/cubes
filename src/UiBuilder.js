@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import DynamicComponent from "./DynamicComponent";
 
-import "./Utilities.scss";
-
 const layoutElements = [
   {
     name: "wrapper",
@@ -125,16 +123,6 @@ const UiBuilder = ({ selectedPage, elements = [], setElements }) => {
             setSelectedElement={setSelectedElement}
             componentName={selectedPage.name}
           />
-        </div>
-        <div style={{ padding: "0 10px" }}>
-          <h1>Code</h1>
-          <pre>
-            <DynamicComponent
-              raw
-              elements={elements}
-              componentName={selectedPage.name}
-            />
-          </pre>
         </div>
       </div>
     </div>

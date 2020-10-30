@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import prettier from "prettier";
-import babelParser from "prettier/parser-babel";
 
 const Node = ({ pages, selectedPage, setSelectedPage }) => (
   <>
@@ -24,69 +22,11 @@ const Node = ({ pages, selectedPage, setSelectedPage }) => (
   </>
 );
 
-const pageExists = (pages, name) => {
-  for (const page of pages) {
-    if (page.name === name) return true;
-    pageExists(page.children, name);
-  }
-  return false;
-};
-
 const upperCamelToSnakeCase = (string) =>
   string.replace(/[\w]([A-Z])/g, (m) => m[0] + "-" + m[1]).toLowerCase();
 
-const routes = (pages) =>
-  pages
-    .map(({ name, path, children }) =>
-      children.length > 0
-        ? `<Route path="${path}" element={<${name} />}>${routes(
-            children
-          )}</Route>`
-        : `<Route path="${path}" element={<${name} />} />`
-    )
-    .join("");
-
-const GeneratedCode = ({ pages }) => {
-  const code = `const App = () => (<BrowserRouter><Routes>${routes(
-    pages
-  )}</Routes></BrowserRouter>)`;
-
-  return (
-    <>
-      <pre>
-        {prettier.format(code, {
-          parser: "babel",
-          plugins: [babelParser],
-        })}
-      </pre>
-    </>
-  );
-};
-
-const RouteBuilder = ({ selectedPage, setSelectedPage }) => {
+const RouteBuilder = ({ selectedPage, setSelectedPage, pages, addPage }) => {
   const [placeholder, setPlaceholder] = useState();
-  const [pages, setPages] = useState([]);
-
-  const updatePages = (pages, parent, newPage) => {
-    for (const page of pages) {
-      if (page.name === parent) {
-        page.children.push(newPage);
-        return;
-      }
-      updatePages(page.children, parent, newPage);
-    }
-  };
-
-  const addPage = (name, path, parent) => {
-    if (pageExists(pages, name)) return;
-    if (!parent) {
-      setPages((prevState) => [...prevState, { name, path, children: [] }]);
-    } else {
-      let pagesCopy = pages.map((page) => page);
-      updatePages(pagesCopy, parent, { name, path, children: [] });
-      setPages(pagesCopy);
-    }
-  };
 
   const onSubmit = (event) => {
     event.preventDefault();
@@ -131,10 +71,6 @@ const RouteBuilder = ({ selectedPage, setSelectedPage }) => {
               setSelectedPage={setSelectedPage}
             />
           </div>
-        </div>
-        <div style={{ padding: "0 10px" }}>
-          <h1>Code</h1>
-          <GeneratedCode pages={pages} />
         </div>
       </div>
     </div>
